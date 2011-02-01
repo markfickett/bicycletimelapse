@@ -3,6 +3,8 @@
  * This is to take a photo each time a bicycle wheel completes a revolution.
  */
 
+#include "MomentaryButton.h"
+
 // The reed switch is connected between this pin and ground.
 #define PIN_SWITCH		5
 
@@ -14,23 +16,24 @@
 // The built-in status LED is on this pin.
 #define PIN_LED_STATUS		13
 
+MomentaryButton reedSwitch(PIN_SWITCH);
+
 void setup()
 {
 	// Set up the pins as input or output, appropriately.
-	pinMode(PIN_SWITCH, INPUT);
 	pinMode(PIN_LED_IR, OUTPUT);
 	pinMode(PIN_LED_STATUS, OUTPUT);
 
-	// Set the switch's pin to be HIGH by default
-	// (enable the internal pull-up resistor).
-	digitalWrite(PIN_SWITCH, HIGH);
+	reedSwitch.setup();
 }
 
 void loop()
 {
-	// When the switch is closed, the INPUT pin will be pulled low.
-	bool isClosed = digitalRead(PIN_SWITCH) == LOW;
-
-	// Turn on the status LED when the switch is closed.
-	digitalWrite(PIN_LED_STATUS, isClosed ? HIGH : LOW);
+	reedSwitch.check();
+	if (reedSwitch.wasClicked() || reedSwitch.wasHeld())
+	{
+		digitalWrite(PIN_LED_STATUS, HIGH);
+		delay(200);
+		digitalWrite(PIN_LED_STATUS, LOW);
+	}
 }
