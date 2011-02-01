@@ -4,6 +4,7 @@
  */
 
 #include "MomentaryButton.h"
+#include "NikonRemote.h"
 
 // The reed switch is connected between this pin and ground.
 #define PIN_SWITCH		5
@@ -17,14 +18,12 @@
 #define PIN_LED_STATUS		13
 
 MomentaryButton reedSwitch(PIN_SWITCH);
+NikonRemote remote(PIN_LED_IR, PIN_LED_STATUS);
 
 void setup()
 {
-	// Set up the pins as input or output, appropriately.
-	pinMode(PIN_LED_IR, OUTPUT);
-	pinMode(PIN_LED_STATUS, OUTPUT);
-
 	reedSwitch.setup();
+	remote.setup();
 }
 
 void loop()
@@ -32,8 +31,7 @@ void loop()
 	reedSwitch.check();
 	if (reedSwitch.wasClicked() || reedSwitch.wasHeld())
 	{
-		digitalWrite(PIN_LED_STATUS, HIGH);
-		delay(200);
-		digitalWrite(PIN_LED_STATUS, LOW);
+		remote.send();
 	}
 }
+
