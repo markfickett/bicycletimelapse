@@ -17,11 +17,11 @@
 
 class NikonRemote {
 private:
-	const int pinStatus, pinIR;
+	const int pinIR;
 	int oscd; //oscd is a delay in microsecond used at each oscillation.
 	void oscillate(int pin, unsigned long n, int shine);
 public:
-	NikonRemote(int irPin, int statusPin=13);
+	NikonRemote(int irPin);
 	void setup();
 	void send();
  

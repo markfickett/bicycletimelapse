@@ -1,5 +1,16 @@
 #include "NikonRemote.h"
 
+// The built-in status LED is used when calibrating timings.
+#ifndef PIN_LED_STATUS
+#define PIN_LED_STATUS	13
+#endif
+
+// Define this to avoid recalibrating on setup.
+// LilyPad Arduino ATmega328: 14, 962
+//#define CALIBRATED_OSCD		14
+//#define CALIBRATED_INTERVAL	962
+
+
 //shutter sequence (on,off,on,off ... in microsecond)
 unsigned long sequence[] = {
 	2000,27830,390,1580,410,3580,400,
@@ -7,18 +18,16 @@ unsigned long sequence[] = {
 	2000,27830,390,1580,410,3580,400,0};
 const int seq_l = sizeof(sequence)/sizeof(unsigned long);
 
-NikonRemote::NikonRemote(int irPin, int statusPin)
-	: pinStatus(statusPin), pinIR(irPin) {};
+NikonRemote::NikonRemote(int irPin)
+	: pinIR(irPin) {};
 
 void NikonRemote::send()
 {
 	int i;
-	digitalWrite(pinStatus, HIGH);
 	for(i=0; i < seq_l; i++)
 	{
 		oscillate(pinIR, sequence[i], i%2==0);
 	}
-	digitalWrite(pinStatus, LOW);
 }
  
 void NikonRemote::oscillate(int pin, unsigned long n, int shine)
@@ -35,32 +44,52 @@ void NikonRemote::oscillate(int pin, unsigned long n, int shine)
  
 void NikonRemote::setup()
 {
-	int min=1, max=100, i;
-	int last_oscd=0;
-	unsigned long before, intervalle;
-	oscd=max;
 
-	pinMode(pinStatus, OUTPUT);
-	pinMode(pinIR, OUTPUT);
+	unsigned long interval;
+	#ifdef CALIBRATED_OSCD
+	oscd =		CALIBRATED_OSCD;
+	interval =	CALIBRATED_INTERVAL;
+	#else
+	int min=1, max=100;
+	int last_oscd = 0;
+	unsigned long before;
+	oscd = max;
 
-	//this "while" will process the best "oscd"
-	while(last_oscd!=oscd){
-		last_oscd=oscd;
-		oscd=(min+max)>>1;
+	pinMode(PIN_LED_STATUS, OUTPUT);
 
-		before=millis();
-		oscillate(pinStatus, FREQ, 1);
-		intervalle=millis()-before;
+	// Process the best "oscd". Do a binary search between "min" and "max"
+	// for the value of "oscd" that results in a call to oscillate
+	// taking the correct amount of time (for the calibration, oscillating
+	// FREQ times should by definition take 1 second).
+	while(last_oscd != oscd) // as long as still converging
+	{
+		last_oscd = oscd;
+		oscd = (min+max) >> 1;
 
-		if(intervalle >= 1000) max=oscd;
-		else min=oscd;
+		before = millis();
+		oscillate(PIN_LED_STATUS, FREQ, 1); // uses the current oscd
+		interval = millis() - before;
+
+		if (interval >= 1000) {
+			max = oscd;
+		} else {
+			min = oscd;
+		}
 
 	}
+	Serial.begin(28800);
+	Serial.print("Calibrated oscd value: ");
+	Serial.println(oscd);
+	Serial.print("Calibrated interval value: ");
+	Serial.println(interval);
+	#endif
 
 	// Rewrite the sequence array, replacing all microsecond values
 	// with by the number of oscillations.
-	for(i = 0; i < seq_l; i++)
+	for(int i = 0; i < seq_l; i++)
 	{
-		sequence[i] = (sequence[i]*FREQ) / (intervalle * 1000);
+		sequence[i] = (sequence[i]*FREQ) / (interval * 1000);
 	}
+
+	pinMode(pinIR, OUTPUT);
 }
