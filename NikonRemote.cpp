@@ -37,8 +37,13 @@ void NikonRemote::oscillate(int pin, unsigned long n, int shine)
 	{
 		n--;
 		delayMicroseconds(oscd);
-		ir_status  =  !ir_status; 
-		digitalWrite(pin,  ir_status && shine);  
+		ir_status = !ir_status; 
+		digitalWrite(pin, ir_status && shine);  
+	}
+	// Avoid leaving the light on.
+	if (ir_status && shine == HIGH)
+	{
+		digitalWrite(pin, LOW);
 	}
 }
  
@@ -47,8 +52,8 @@ void NikonRemote::setup()
 
 	unsigned long interval;
 	#ifdef CALIBRATED_OSCD
-	oscd =		CALIBRATED_OSCD;
-	interval =	CALIBRATED_INTERVAL;
+	oscd = CALIBRATED_OSCD;
+	interval = CALIBRATED_INTERVAL;
 	#else
 	int min=1, max=100;
 	int last_oscd = 0;
