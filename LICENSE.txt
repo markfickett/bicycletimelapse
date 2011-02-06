@@ -1,0 +1,3 @@
+NikonRemote.cpp and NikonRemote.h are based heavily on Aurelien Antoine's code ( http://ilpleut.be/code-nikonremote ) released under cc-by-nc-sa-3.0, and are re-released under the same license ( http://creativecommons.org/licenses/by-nc-sa/3.0/ ).
+
+The rest of the code is released under cc-by-3.0 ( http://creativecommons.org/licenses/by/3.0/ ).
