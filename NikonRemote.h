@@ -1,6 +1,8 @@
 #pragma once
 /**
- * This is a slight modification of Aurelien Antoine's code:
+ * Emulate a Nikon IR remote, triggering the shutter using an IR LED.
+ *
+ * This is heavily based on Aurelien Antoine's code:
  *	http://ilpleut.be/code-nikonremote
  * the original header for which is reproduced below:
  *
